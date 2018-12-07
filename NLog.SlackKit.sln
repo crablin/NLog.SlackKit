@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2050
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.SlackKit", "src\NLog.SlackKit\NLog.SlackKit.csproj", "{EE7F3AC9-EE79-4016-8FC3-8C22C1A6E666}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NLog.SlackKit", "src\NLog.SlackKit\NLog.SlackKit.csproj", "{EE7F3AC9-EE79-4016-8FC3-8C22C1A6E666}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.SlackKit.Demo", "sample\NLog.SlackKit.Demo\NLog.SlackKit.Demo.csproj", "{2AF06EA8-31DE-464B-B284-950089B83495}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{EE7F3AC9-EE79-4016-8FC3-8C22C1A6E666}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE7F3AC9-EE79-4016-8FC3-8C22C1A6E666}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE7F3AC9-EE79-4016-8FC3-8C22C1A6E666}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AF06EA8-31DE-464B-B284-950089B83495}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AF06EA8-31DE-464B-B284-950089B83495}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AF06EA8-31DE-464B-B284-950089B83495}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AF06EA8-31DE-464B-B284-950089B83495}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

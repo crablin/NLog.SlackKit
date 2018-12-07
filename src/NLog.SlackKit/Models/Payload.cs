@@ -60,8 +60,7 @@ namespace NLog.SlackKit.Models
         /// <param name="icon"></param>
         public void SetIcon(string icon)
         {
-            Uri uriResult;
-            if (Uri.TryCreate(icon, UriKind.Absolute, out uriResult)
+            if (Uri.TryCreate(icon, UriKind.Absolute, out Uri uriResult)
                 && uriResult.Scheme == Uri.UriSchemeHttp)
             {
                 this.IconUrl = icon;
@@ -103,7 +102,7 @@ namespace NLog.SlackKit.Models
                 client.Headers[HttpRequestHeader.ContentType] = "application/json";
                 client.Encoding = Encoding.UTF8;
                 client.Proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
-                client.UploadStringAsync(webHookUrl, "POST", json);
+                client.UploadStringAsync(new Uri(webHookUrl), "POST", json);
             }
         }
     }

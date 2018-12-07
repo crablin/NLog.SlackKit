@@ -26,19 +26,18 @@ namespace NLog.SlackKit
 
         protected override void InitializeTarget()
         {
-            if (string.IsNullOrWhiteSpace(this.WebHookUrl))
+            if (string.IsNullOrWhiteSpace(WebHookUrl))
             {
                 throw new ArgumentOutOfRangeException("WebHookUrl", "Webhook URL cannot be empty.");
             }
 
-            Uri uriResult;
-            if (!Uri.TryCreate(this.WebHookUrl, UriKind.Absolute, out uriResult))
+            if (!Uri.TryCreate(WebHookUrl, UriKind.Absolute, out Uri uriResult))
             {
                 throw new ArgumentOutOfRangeException("WebHookUrl", "Webhook URL is an invalid URL.");
             }
 
-            if (!string.IsNullOrWhiteSpace(this.Channel.Text)
-                && (!this.Channel.Text.StartsWith("#") && !this.Channel.Text.StartsWith("@") && !this.Channel.Text.StartsWith("${")))
+            if (!string.IsNullOrWhiteSpace(Channel.Text)
+                && (!this.Channel.Text.StartsWith("#") && !Channel.Text.StartsWith("@") && !Channel.Text.StartsWith("${")))
             {
                 throw new ArgumentOutOfRangeException("Channel", "The Channel name is invalid. It must start with either a # or a @ symbol or use a variable.");
             }
@@ -66,15 +65,15 @@ namespace NLog.SlackKit
                 Text = message
             };
 
-            var channel = this.Channel.Render(info.LogEvent);
+            var channel = Channel.Render(info.LogEvent);
             if (!string.IsNullOrWhiteSpace(channel))
             {
                 payload.Channel = channel;
             }
 
-            if (!string.IsNullOrWhiteSpace(this.Icon))
+            if (!string.IsNullOrWhiteSpace(Icon))
             {
-                payload.SetIcon(this.Icon);
+                payload.SetIcon(Icon);
             }
 
             string username = this.Username.Render(info.LogEvent);
@@ -127,7 +126,7 @@ namespace NLog.SlackKit
                 payload.Attachments.Add(attachment);
             }
 
-            payload.SendTo(this.WebHookUrl);
+            payload.SendTo(WebHookUrl);
         }
     }
 }
