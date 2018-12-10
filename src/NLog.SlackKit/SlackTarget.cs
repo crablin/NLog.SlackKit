@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using NLog.Common;
@@ -14,7 +15,7 @@ namespace NLog.SlackKit
     [Target("Slack")]
     public class SlackTarget : TargetWithLayout
     {
-        private readonly Process _currentProcess = Process.GetCurrentProcess();
+        private readonly Thread _currentThread = Thread.CurrentThread;
 
         public bool Async { get; set; }
 
@@ -56,12 +57,17 @@ namespace NLog.SlackKit
             {
                 var payload = GenerateSlackPayload(info);
                 var json = payload.ToJson();
-
+                
                 SendTo((client) =>
                 {
                     if (Async)
                     {
-                        Interlocked.Increment(ref SlackLogQueue.QueueCount);
+                        if (!SlackLogQueue.Counter.ContainsKey(_currentThread.ManagedThreadId))
+                        {
+                            SlackLogQueue.Counter.TryAdd(_currentThread.ManagedThreadId, new StrongBox<int>(0));
+                        }
+
+                        Interlocked.Increment(ref SlackLogQueue.Counter[_currentThread.ManagedThreadId].Value);
                         client.UploadStringCompleted += Client_UploadStringCompleted;
                         client.UploadStringTaskAsync(new Uri(WebHookUrl), "POST", json).ConfigureAwait(true);
                     }
@@ -77,14 +83,14 @@ namespace NLog.SlackKit
 
                 if (Async)
                 {
-                    Interlocked.Decrement(ref SlackLogQueue.QueueCount);
+                    Interlocked.Decrement(ref SlackLogQueue.Counter[_currentThread.ManagedThreadId].Value);
                 }
             }
         }
 
         private void Client_UploadStringCompleted(object sender, UploadStringCompletedEventArgs e)
         {
-            Interlocked.Decrement(ref SlackLogQueue.QueueCount);
+            Interlocked.Decrement(ref SlackLogQueue.Counter[_currentThread.ManagedThreadId].Value);
         }
 
         private Payload GenerateSlackPayload(AsyncLogEventInfo info)
