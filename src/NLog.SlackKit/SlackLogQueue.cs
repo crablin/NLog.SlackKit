@@ -1,24 +1,28 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace NLog.SlackKit
 {
-    public static class SlackLogQueue
+    public class SlackLogQueue
     {
-        internal static int QueueCount = 0;
+        internal static ConcurrentDictionary<int, StrongBox<int>> Counter = new ConcurrentDictionary<int, StrongBox<int>>();
 
         public static bool WaitAsyncCompleted(int timeoutOfSecond = 30)
         {
+            var threadId = Thread.CurrentThread.ManagedThreadId;
+
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            while (QueueCount > 0)
+            while (Counter[threadId].Value > 0)
             {
                 if (stopwatch.Elapsed > TimeSpan.FromSeconds(timeoutOfSecond))
                 {
-                    QueueCount = 0;
+                    Counter.TryRemove(threadId, out StrongBox<int> _);
                     return false;
                 }
 

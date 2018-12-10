@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,6 +22,8 @@ namespace NLog.SlackKit.Tests
         public void Send()
         {
             var logger = _factory.GetCurrentClassLogger();
+
+            Console.WriteLine($"Thread: {Thread.CurrentThread.ManagedThreadId}");
 
             logger.Info("I test send INFO message");
             logger.Debug("I test send DEBUG message");
@@ -44,7 +47,7 @@ namespace NLog.SlackKit.Tests
 
             var count = new List<int>();
 
-            for (var i = 1; i <= 10; i++)
+            for (var i = 1; i <= 100; i++)
             {
                 count.Add(i);
                 //logger.Info($"Priint: sync {i} times");
