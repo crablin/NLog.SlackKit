@@ -90,20 +90,8 @@ namespace NLog.SlackKit.Models
             }
         }
 
-        /// <summary>
-        /// Send this payload via a POST request to the given slack Webhook
-        /// </summary>
-        /// <param name="webHookUrl">The WebhookUrl where Payload will be POST</param>
-        public void SendTo(string webHookUrl)
-        {
-            var json = this.ToJson();
-            using (var client = new WebClient())
-            {
-                client.Headers[HttpRequestHeader.ContentType] = "application/json";
-                client.Encoding = Encoding.UTF8;
-                client.Proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
-                client.UploadStringAsync(new Uri(webHookUrl), "POST", json);
-            }
-        }
+
     }
+
+    
 }

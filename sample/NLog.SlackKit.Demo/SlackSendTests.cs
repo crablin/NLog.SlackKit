@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -27,6 +26,12 @@ namespace NLog.SlackKit.Tests
             logger.Debug("I test send DEBUG message");
             logger.Warn("I test send WARN message");
             logger.Fatal("I test send FATAL message");
+
+            if (SlackLogQueue.WaitAsyncCompleted())
+            {
+                Console.Write("Ok");
+            }
+            
         }
 
         [TestMethod]
@@ -39,22 +44,25 @@ namespace NLog.SlackKit.Tests
 
             var count = new List<int>();
 
-            for (var i = 1; i <= 100; i++)
+            for (var i = 1; i <= 10; i++)
             {
-                //count.Add(i);
-                logger.Info($"Priint: sync {i} times");
-                //Thread.Sleep(50);
+                count.Add(i);
+                //logger.Info($"Priint: sync {i} times");
             }
 
-            //Parallel.ForEach(count, (i) =>
-            //{
-            //    logger.Info($"Priint: sync {i} times");
-            //    Thread.Sleep(100);
-            //});
+            Parallel.ForEach(count, i =>
+            {
+                logger.Info($"Priint: sync {i} times");
+            });
 
             stopwatch.Stop();
 
             Console.WriteLine("Time elapsed: {0}", stopwatch.Elapsed);
+
+            if (SlackLogQueue.WaitAsyncCompleted())
+            {
+                Console.WriteLine("Ok");
+            }
         }
     }
 }
