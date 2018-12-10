@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net;
+using System.Text;
+using System.Threading;
 using NLog.Common;
 using NLog.Config;
 using NLog.Layouts;
@@ -12,6 +15,8 @@ namespace NLog.SlackKit
     public class SlackTarget : TargetWithLayout
     {
         private readonly Process _currentProcess = Process.GetCurrentProcess();
+
+        public bool Async { get; set; }
 
         [RequiredParameter]
         public string WebHookUrl { get; set; }
@@ -26,19 +31,18 @@ namespace NLog.SlackKit
 
         protected override void InitializeTarget()
         {
-            if (string.IsNullOrWhiteSpace(this.WebHookUrl))
+            if (string.IsNullOrWhiteSpace(WebHookUrl))
             {
                 throw new ArgumentOutOfRangeException("WebHookUrl", "Webhook URL cannot be empty.");
             }
 
-            Uri uriResult;
-            if (!Uri.TryCreate(this.WebHookUrl, UriKind.Absolute, out uriResult))
+            if (!Uri.TryCreate(WebHookUrl, UriKind.Absolute, out Uri uriResult))
             {
                 throw new ArgumentOutOfRangeException("WebHookUrl", "Webhook URL is an invalid URL.");
             }
 
-            if (!string.IsNullOrWhiteSpace(this.Channel.Text)
-                && (!this.Channel.Text.StartsWith("#") && !this.Channel.Text.StartsWith("@") && !this.Channel.Text.StartsWith("${")))
+            if (!string.IsNullOrWhiteSpace(Channel.Text)
+                && (!this.Channel.Text.StartsWith("#") && !Channel.Text.StartsWith("@") && !Channel.Text.StartsWith("${")))
             {
                 throw new ArgumentOutOfRangeException("Channel", "The Channel name is invalid. It must start with either a # or a @ symbol or use a variable.");
             }
@@ -50,15 +54,40 @@ namespace NLog.SlackKit
         {
             try
             {
-                this.SendToSlack(info);
+                var payload = GenerateSlackPayload(info);
+                var json = payload.ToJson();
+
+                SendTo((client) =>
+                {
+                    if (Async)
+                    {
+                        Interlocked.Increment(ref SlackLogQueue.QueueCount);
+                        client.UploadStringCompleted += Client_UploadStringCompleted;
+                        client.UploadStringTaskAsync(new Uri(WebHookUrl), "POST", json).ConfigureAwait(true);
+                    }
+                    else
+                    {
+                        client.UploadString(WebHookUrl, "POST", json);
+                    }
+                });
             }
             catch (Exception e)
             {
                 info.Continuation(e);
+
+                if (Async)
+                {
+                    Interlocked.Decrement(ref SlackLogQueue.QueueCount);
+                }
             }
         }
 
-        private void SendToSlack(AsyncLogEventInfo info)
+        private void Client_UploadStringCompleted(object sender, UploadStringCompletedEventArgs e)
+        {
+            Interlocked.Decrement(ref SlackLogQueue.QueueCount);
+        }
+
+        private Payload GenerateSlackPayload(AsyncLogEventInfo info)
         {
             var message = Layout.Render(info.LogEvent);
             var payload = new Payload()
@@ -66,21 +95,12 @@ namespace NLog.SlackKit
                 Text = message
             };
 
-            var channel = this.Channel.Render(info.LogEvent);
-            if (!string.IsNullOrWhiteSpace(channel))
-            {
-                payload.Channel = channel;
-            }
+            payload.Channel = Channel.RenderValue(info.LogEvent);
+            payload.Username = Username.RenderValue(info.LogEvent);
 
-            if (!string.IsNullOrWhiteSpace(this.Icon))
+            if (!string.IsNullOrWhiteSpace(Icon))
             {
-                payload.SetIcon(this.Icon);
-            }
-
-            string username = this.Username.Render(info.LogEvent);
-            if (!string.IsNullOrWhiteSpace(username))
-            {
-                payload.Username = username;
+                payload.SetIcon(Icon);
             }
 
             if (!ExcludeLevel)
@@ -127,7 +147,23 @@ namespace NLog.SlackKit
                 payload.Attachments.Add(attachment);
             }
 
-            payload.SendTo(this.WebHookUrl);
+            return payload;
+        }
+
+        /// <summary>
+        /// Send this payload via a POST request to the given slack Webhook
+        /// </summary>
+        /// <param name="webHookUrl">The WebhookUrl where Payload will be POST</param>
+        private void SendTo(Action<WebClient> action)
+        {
+            using (var client = new WebClient())
+            {
+                client.Headers[HttpRequestHeader.ContentType] = "application/json";
+                client.Encoding = Encoding.UTF8;
+                client.Proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
+                action(client);
+            }
         }
     }
+
 }

@@ -5,6 +5,7 @@
     <Description>Base on NLogToSlack
 Change version to .NET Standard
 </Description>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

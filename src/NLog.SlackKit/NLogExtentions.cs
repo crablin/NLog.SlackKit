@@ -1,6 +1,8 @@
-﻿namespace NLog.SlackKit
+﻿using NLog.Layouts;
+
+namespace NLog.SlackKit
 {
-    public static class NLogLevelExtentions
+    public static class NLogExtentions
     {
         /// <summary>
         /// Return a color string from the level of an NLog message
@@ -24,6 +26,25 @@
                 default:
                     return "#cccccc";
             }
+        }
+
+        /// <summary>
+        /// Get SimpleLayout the value (default is null).
+        /// </summary>
+        /// <param name="layout">The layout.</param>
+        /// <param name="eventInfo">The event information.</param>
+        /// <param name="defaultValue">The default value.</param>
+        /// <returns></returns>
+        public static string RenderValue(this SimpleLayout layout, LogEventInfo eventInfo, string defaultValue = null)
+        {
+            string value = layout.Render(eventInfo);
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            return value;
         }
     }
 }
