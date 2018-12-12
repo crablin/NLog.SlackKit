@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace NLog.SlackKit
 {
@@ -11,22 +11,24 @@ namespace NLog.SlackKit
     {
         internal static ConcurrentDictionary<int, StrongBox<int>> Counter = new ConcurrentDictionary<int, StrongBox<int>>();
 
-        public static bool WaitAsyncCompleted(int timeoutOfSecond = 30)
+        public static async Task<bool> WaitAsyncCompleted(int timeoutOfSecond = 30)
         {
-            var threadId = Thread.CurrentThread.ManagedThreadId;
-
+            var processId = Process.GetCurrentProcess().Id;
+            
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            while (Counter[threadId].Value > 0)
+            if (!Counter.ContainsKey(processId)) return false;
+
+            while (Counter[processId].Value > 0)
             {
                 if (stopwatch.Elapsed > TimeSpan.FromSeconds(timeoutOfSecond))
                 {
-                    Counter.TryRemove(threadId, out StrongBox<int> _);
+                    Counter.TryRemove(processId, out StrongBox<int> _);
                     return false;
                 }
 
-                Thread.Sleep(100);
+                await Task.Delay(100);
             }
 
             stopwatch.Stop();

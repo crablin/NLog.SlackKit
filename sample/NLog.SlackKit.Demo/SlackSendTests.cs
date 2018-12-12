@@ -30,7 +30,7 @@ namespace NLog.SlackKit.Tests
             logger.Warn("I test send WARN message");
             logger.Fatal("I test send FATAL message");
 
-            if (SlackLogQueue.WaitAsyncCompleted())
+            if (SlackLogQueue.WaitAsyncCompleted().Result)
             {
                 Console.Write("Ok");
             }
@@ -62,7 +62,7 @@ namespace NLog.SlackKit.Tests
 
             Console.WriteLine("Time elapsed: {0}", stopwatch.Elapsed);
 
-            if (SlackLogQueue.WaitAsyncCompleted())
+            if (SlackLogQueue.WaitAsyncCompleted().Result)
             {
                 Console.WriteLine("Ok");
             }

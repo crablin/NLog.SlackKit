@@ -15,7 +15,7 @@ namespace NLog.SlackKit
     [Target("Slack")]
     public class SlackTarget : TargetWithLayout
     {
-        private readonly Thread _currentThread = Thread.CurrentThread;
+        private readonly int _currentProcessId = Process.GetCurrentProcess().Id;
 
         public bool Async { get; set; }
 
@@ -62,12 +62,12 @@ namespace NLog.SlackKit
                 {
                     if (Async)
                     {
-                        if (!SlackLogQueue.Counter.ContainsKey(_currentThread.ManagedThreadId))
+                        if (!SlackLogQueue.Counter.ContainsKey(_currentProcessId))
                         {
-                            SlackLogQueue.Counter.TryAdd(_currentThread.ManagedThreadId, new StrongBox<int>(0));
+                            SlackLogQueue.Counter.TryAdd(_currentProcessId, new StrongBox<int>(0));
                         }
 
-                        Interlocked.Increment(ref SlackLogQueue.Counter[_currentThread.ManagedThreadId].Value);
+                        Interlocked.Increment(ref SlackLogQueue.Counter[_currentProcessId].Value);
                         client.UploadStringCompleted += Client_UploadStringCompleted;
                         client.UploadStringTaskAsync(new Uri(WebHookUrl), "POST", json).ConfigureAwait(true);
                     }
@@ -83,14 +83,14 @@ namespace NLog.SlackKit
 
                 if (Async)
                 {
-                    Interlocked.Decrement(ref SlackLogQueue.Counter[_currentThread.ManagedThreadId].Value);
+                    Interlocked.Decrement(ref SlackLogQueue.Counter[_currentProcessId].Value);
                 }
             }
         }
 
         private void Client_UploadStringCompleted(object sender, UploadStringCompletedEventArgs e)
         {
-            Interlocked.Decrement(ref SlackLogQueue.Counter[_currentThread.ManagedThreadId].Value);
+            Interlocked.Decrement(ref SlackLogQueue.Counter[_currentProcessId].Value);
         }
 
         private Payload GenerateSlackPayload(AsyncLogEventInfo info)
