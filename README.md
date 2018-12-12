@@ -1,4 +1,4 @@
-NLog.Slack
+NLog.SlackKit
 =========
 
 [![NuGet](https://img.shields.io/nuget/v/NLog.SlackKit.svg)](https://www.nuget.org/packages/NLog.SlackKit/)
@@ -71,10 +71,7 @@ var logger = _factory.GetCurrentClassLogger();
 
 logger.Info("message");
 
-if (SlackLogQueue.WaitAsyncCompleted())
-{
-    //add flow on async post completed
-}
+SlackLogQueue.WaitAsyncCompleted().Wait()
 ```
 
 ## Async Exception on .NET 4.5
