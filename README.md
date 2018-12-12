@@ -77,6 +77,25 @@ if (SlackLogQueue.WaitAsyncCompleted())
 }
 ```
 
+## Async Exception on .NET 4.5
+
+If you get this exception message on website:
+
+`InvalidOperationException: An asynchronous operation cannot be started at this time.`
+
+Refer to [MSDN Blog](https://blogs.msdn.microsoft.com/webdev/2012/11/19/all-about-httpruntime-targetframework/)
+
+You must be add `aspnet:UseTaskFriendlySynchronizationContext` on `web.config` appSetting 
+
+``` xml
+<configuration>
+  <appSettings>
+    <add key="aspnet:UseTaskFriendlySynchronizationContext" value="true" />
+    <!-- other values -->
+  </appSettings>
+</configuration>
+```
+
 ## License
 
 Copyright (c) 2018 Crab Lin
