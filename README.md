@@ -62,7 +62,7 @@ Support .NET Core 2.0 and .NET Framework 4.6
 </extensions>
 ```
 
-## Async with safe thread 
+## Async on Console
 
 Avoid post slack api is closed when thread is end. you must be code that.
 
